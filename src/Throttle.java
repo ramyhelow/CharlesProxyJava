@@ -11,6 +11,7 @@ public class Throttle {
     public static void main(String[] args) {
 
     }
+
     private static void copyFileUsingChannel(File source, File dest) throws IOException {
         FileChannel sourceChannel = null;
         FileChannel destChannel = null;
@@ -18,7 +19,7 @@ public class Throttle {
             sourceChannel = new FileInputStream(source).getChannel();
             destChannel = new FileOutputStream(dest).getChannel();
             destChannel.transferFrom(sourceChannel, 0, sourceChannel.size());
-        }finally{
+        } finally{
             sourceChannel.close();
             destChannel.close();
         }
@@ -26,7 +27,8 @@ public class Throttle {
 
     public static void startProxy(int devicePortNumber, String newSpeed) throws IOException {
         String newPath = "./runningProfiles/" + newSpeed + devicePortNumber + ".config";
-        copyFileUsingChannel(new File("/ /pankaj/tmp/source.avi"), new File("./profiles/" + newSpeed + ".config"));
+        copyFileUsingChannel(new File("./profiles/" + newSpeed + ".config"), new File(newPath));
+        modifyXML(newPath, newSpeed);
 
     }
 }
