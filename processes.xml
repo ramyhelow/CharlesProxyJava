@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Processes>
+    <Device>
+        <port>1</port>
+        <pid>Paypal</pid>
+    </Device>
+    <Device>
+        <port>2</port>
+        <pid>eBay</pid>
+    </Device>
+    <Device>
+        <port>3</port>
+        <pid>Google</pid>
+    </Device>
+</Processes>

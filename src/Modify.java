@@ -29,8 +29,8 @@ public class Modify {
             Document doc = docBuilder.parse(filepath);
 
             Node data = doc.getFirstChild();
-            Node proxyTag = doc.getElementByTagName("proxy");
-            proxyTag.setTextContent(newSpeed);
+            //Node proxyTag = doc.getElementByTagName("proxy");
+           // proxyTag.setTextContent(newSpeed);
 
             // write the content into xml file
             TransformerFactory transformerFactory = TransformerFactory
