@@ -1,6 +1,4 @@
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
+import org.w3c.dom.*;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -14,86 +12,136 @@ import java.io.IOException;
 
 public class ChProcess {
 
-    public static void startProcess(int devicePortNumber, String newSpeed, String configFilePath) throws IOException {
-        Process myProcess = new ProcessBuilder("Charles.exe", "-headless -config " + configFilePath).start();
-        long pid = myProcess.pid();
+    static File processesFile;
+    static File fileDirectory;
+    static DocumentBuilderFactory icFactory;
+    static DocumentBuilder icBuilder;
+    static Document doc;
+
+    public static void main(String[] args) throws ParserConfigurationException, SAXException, IOException, TransformerException {
+        init("");
+        startProcess(8888, "3G", "");
+        //killAllCharlesInstances();
     }
 
-    public static void killProcess(int devicePortNumber) throws IOException {
-        int pid = getProcessNumber(devicePortNumber);
-        Process myProcess = new ProcessBuilder("taskkill /F /PID " + pid).start();
-    }
+    public static void init(String fileDirectory) throws IOException, ParserConfigurationException, SAXException, TransformerException {
 
-    private static int getProcessNumber(int devicePortNumber) throws IOException {
-        addProcessToFile();
-        return 0;
-    }
+        icFactory = DocumentBuilderFactory.newInstance();
+        icBuilder = icFactory.newDocumentBuilder();
+        processesFile = new File(fileDirectory+"processes.xml");
+        doc = icBuilder.newDocument();
 
-//    public static void main(String[] args) throws IOException, TransformerException, ParserConfigurationException {
-//        mapProcess();
-//    }
+        //new File(fileDirectory).mkdirs();
+        boolean fileExists = processesFile.createNewFile();
 
-    private static void addProcessToFile(String portNumber, String pid) throws IOException, ParserConfigurationException, TransformerException, SAXException {
-        File processesFile = new File("processes.xml");
-
-        DocumentBuilderFactory icFactory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder icBuilder = icFactory.newDocumentBuilder();;
-        Document doc;
-
-        //if file doesn't exist
-        if (processesFile.createNewFile()) {
-            System.out.println("Processes File has been created.");
-            doc = icBuilder.newDocument();
-            Element mainRootElement = doc.createElement("Processes");
-            doc.appendChild(mainRootElement);
-            System.out.println("\nXML DOM Created Successfully..");
-
-            ////if file already exists
-        } else {
+        if (!fileExists) {
             System.out.println("Processes File already exists.");
             doc = icBuilder.parse(processesFile);
-            Element mainRootElement = doc.getDocumentElement();
-            mainRootElement.appendChild(getDevice(doc, portNumber, pid));
+        } else {
+            System.out.println("Processes File has been created.");
+            Element mainRootElement = doc.createElement("processes");
+            doc.appendChild(mainRootElement);
+            writeDomToFile(doc);
         }
+    }
 
+    public static void startProcess(int devicePortNumber, String newSpeed, String configFilePath) throws IOException, TransformerException, ParserConfigurationException, SAXException {
+        killProcess(devicePortNumber);
+        Process myProcess = new ProcessBuilder("Charles.exe", "-headless").start();
+        //Process myProcess = new ProcessBuilder("Charles.exe", "-headless -config " + configFilePath).start();
+        addProcessToFile(Integer.toString(devicePortNumber), Long.toString(myProcess.pid()));
+    }
+
+    public static void killProcess(int devicePortNumber) throws IOException, TransformerException, ParserConfigurationException, SAXException {
+        int pid = getAndRemoveProcessFromFile(devicePortNumber);
+        System.out.println("PID: " + pid);
+        if (pid != 0) {
+            Runtime.getRuntime().exec("taskkill /F /PID " + pid);
+        }
+    }
+
+
+    private static void addProcessToFile(String portNumber, String pid) throws IOException, ParserConfigurationException, TransformerException, SAXException {
+        doc.getDocumentElement().appendChild(createDeviceNode(doc, portNumber, pid));
         writeDomToFile(doc);
     }
 
-    public boolean removeProcessFromFile(String processNumber) throws IOException, ParserConfigurationException, SAXException {
-        File processesFile = new File("processes.xml");
-        DocumentBuilderFactory icFactory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder icBuilder;
 
-        if (processesFile.createNewFile()) {
-            return false;
-        }else{
-            icBuilder = icFactory.newDocumentBuilder();
-            Document doc = icBuilder.parse(processesFile);
+    public static int getAndRemoveProcessFromFile(int deviceNumber) throws IOException, ParserConfigurationException, SAXException, TransformerException {
 
+        NodeList nList = doc.getElementsByTagName("device");
 
+        for (int i = 0; i < nList.getLength(); i++) {
+            Node nNode = nList.item(i);
+            //System.out.println("\nCurrent Element :" + nNode.getNodeName());
+            if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+                Element eElement = (Element) nNode;
+                //System.out.println(eElement.getElementsByTagName("port").item(0).getTextContent());
+                if (Integer.parseInt(eElement.getElementsByTagName("port").item(0).getTextContent())==(deviceNumber)) {
+                    int pid = Integer.parseInt(eElement.getElementsByTagName("pid").item(0).getTextContent());
+                    //System.out.println(pid);
+                    eElement.getParentNode().removeChild(eElement);
+                    writeDomToFile(doc);
+                    return pid;
+                }
+            }
         }
+
+        return 0;
+
     }
 
-    public void getProcessNumberFromFile(){
-
+    public static void killAllCharlesInstances() throws IOException {
+        Runtime.getRuntime().exec("taskkill /IM \"Charles.exe\" /F");
     }
+
+//    public static int getProcessNumberFromFile(int deviceNumber) throws IOException, ParserConfigurationException, SAXException {
+//
+//
+//        boolean newFileCreated = !processesFile.createNewFile();
+//
+//        if (newFileCreated) {
+//            return 0;
+//        } else {
+//            icBuilder = icFactory.newDocumentBuilder();
+//            Document doc = icBuilder.parse(processesFile);
+//
+//            NodeList nList = doc.getElementsByTagName("device");
+//
+//            for (int temp = 0; temp < nList.getLength(); temp++) {
+//                Node nNode = nList.item(temp);
+//                //System.out.println("\nCurrent Element :" + nNode.getNodeName());
+//                if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+//                    Element eElement = (Element) nNode;
+//                    if (eElement.getElementsByTagName("port").item(0).getTextContent().equals(deviceNumber)) {
+//                        System.out.println("Found");
+//                        return Integer.parseInt(eElement.getElementsByTagName("pid").item(0).getTextContent());
+//                    }
+//                }
+//            }
+//
+//            return 0;
+//        }
+//    }
 
     public static void writeDomToFile(Document doc) throws TransformerException {
+        doc.getDocumentElement().normalize();
         Transformer transformer = TransformerFactory.newInstance().newTransformer();
         transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-        DOMSource source = new DOMSource(doc);
-        StreamResult console = new StreamResult("processes.xml");
-        transformer.transform(source, console);
+        transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
+        DOMSource domSource = new DOMSource(doc);
+        StreamResult result = new StreamResult("processes.xml");
+        transformer.transform(domSource, result);
     }
 
-    private static Node getDevice(Document doc, String port, String pid) {
-        Element device = doc.createElement("Device");
-        device.appendChild(getDeviceElements(doc, device, "port", port));
-        device.appendChild(getDeviceElements(doc, device, "pid", pid));
+    private static Node createDeviceNode(Document doc, String port, String pid) {
+        Element device = doc.createElement("device");
+        device.appendChild(createDeviceNodeElements(doc, device, "port", port));
+        device.appendChild(createDeviceNodeElements(doc, device, "pid", pid));
         return device;
     }
 
-    private static Node getDeviceElements(Document doc, Element element, String name, String value) {
+    private static Node createDeviceNodeElements(Document doc, Element element, String name, String value) {
         Element node = doc.createElement(name);
         node.appendChild(doc.createTextNode(value));
         return node;
