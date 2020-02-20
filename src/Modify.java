@@ -20,7 +20,7 @@ import org.xml.sax.SAXException;
 
 public class Modify {
 
-    public static void modifyXML(String filepath, String newSpeed) {
+    public static void modifyXML(String filepath, int newPort) {
 
         try {
             DocumentBuilderFactory docFactory = DocumentBuilderFactory
@@ -29,8 +29,8 @@ public class Modify {
             Document doc = docBuilder.parse(filepath);
 
             Node data = doc.getFirstChild();
-            //Node proxyTag = doc.getElementByTagName("proxy");
-           // proxyTag.setTextContent(newSpeed);
+            Node portTag = doc.getElementsByTagName("port").item(0);
+            portTag.setTextContent(Integer.toString(newPort));
 
             // write the content into xml file
             TransformerFactory transformerFactory = TransformerFactory

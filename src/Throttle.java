@@ -28,7 +28,7 @@ public class Throttle {
     public static void startProxy(int devicePortNumber, String newSpeed) throws IOException {
         String newPath = "./runningProfiles/" + newSpeed + devicePortNumber + ".config";
         copyFileUsingChannel(new File("./profiles/" + newSpeed + ".config"), new File(newPath));
-        Modify.modifyXML(newPath, newSpeed);
+        Modify.modifyXML(newPath, devicePortNumber);
 
     }
 }

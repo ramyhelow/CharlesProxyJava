@@ -9,6 +9,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 
 public class ChProcess {
 
@@ -16,6 +17,7 @@ public class ChProcess {
     static DocumentBuilderFactory icFactory;
     static DocumentBuilder icBuilder;
     static Document doc;
+    public HashMap<Integer, Integer> allPIDs;
 
     static ChProcess chProcess;
 
