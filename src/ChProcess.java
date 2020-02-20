@@ -13,15 +13,22 @@ import java.io.IOException;
 public class ChProcess {
 
     static File processesFile;
-    static File fileDirectory;
     static DocumentBuilderFactory icFactory;
     static DocumentBuilder icBuilder;
     static Document doc;
 
-    public static void main(String[] args) throws ParserConfigurationException, SAXException, IOException, TransformerException {
+    static ChProcess chProcess;
+
+    public ChProcess() throws ParserConfigurationException, TransformerException, SAXException, IOException {
         init("");
-        startProcess(8888, "3G", "");
-        //killAllCharlesInstances();
+    }
+
+    public static ChProcess getInstance() throws ParserConfigurationException, IOException, SAXException, TransformerException {
+        if(chProcess==null) {
+            chProcess = new ChProcess();
+        }
+            return chProcess;
+
     }
 
     public static void init(String fileDirectory) throws IOException, ParserConfigurationException, SAXException, TransformerException {
@@ -45,10 +52,9 @@ public class ChProcess {
         }
     }
 
-    public static void startProcess(int devicePortNumber, String newSpeed, String configFilePath) throws IOException, TransformerException, ParserConfigurationException, SAXException {
+    public static void startProcess(int devicePortNumber, String configFilePath) throws IOException, TransformerException, ParserConfigurationException, SAXException {
         killProcess(devicePortNumber);
-        Process myProcess = new ProcessBuilder("Charles.exe", "-headless").start();
-        //Process myProcess = new ProcessBuilder("Charles.exe", "-headless -config " + configFilePath).start();
+        Process myProcess = new ProcessBuilder("Charles.exe", "-headless -config "+configFilePath).start();
         addProcessToFile(Integer.toString(devicePortNumber), Long.toString(myProcess.pid()));
     }
 
